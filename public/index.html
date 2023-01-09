@@ -1,0 +1,148 @@
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta http-equiv="content-language" content="en" />
+    <meta name="description" content="Echo Server" />
+    <link rel="stylesheet" href="/public/css/cosmo.css" type="text/css" />
+    <link rel="icon" href="/public/favicon.ico" />
+    <title>Echo Server</title>
+  </head>
+
+  <body>
+    <div
+      class="alert alert-warning"
+      style="
+        display: none;
+        font-weight: bold;
+        position: fixed;
+        top: 0px;
+        left: 0px;
+        width: 100%;
+        z-index: 9999;
+      "
+      id="error-container"
+    >
+      <p id="error" />
+    </div>
+
+    <div class="container">
+      <br />
+      <div class="jumbotron">
+        <div class="row">
+          <div class="col-md-4">
+            <img src="/public/logo/actionhero.png" style="max-width: 90%" />
+          </div>
+          <div class="col-md-8">
+            <h1>The Echo Server is working.</h1>
+
+            <div class="row">
+              <div class="col-md-12">
+                <div class="card border-primary">
+                  <div class="card-header">This Server</div>
+                  <div class="card-body">
+                    <pre class="card-text">
+Server Name:        <span class="right" id="serverName">...</span>
+Server ID:          <span class="right" id="serverId">...</span>
+API Version:        <span class="right" id="serverVersion">...</span>
+Actionhero Version  <span class="right" id="actionheroVersion">...</span>
+Uptime (min):       <span class="right" id="uptime">...</span>
+Memory Consumed:    <span class="right" id="consumedMemoryMB">...</span>
+                    </pre>
+
+                    <div class="row" style="text-align: center">
+                      <div class="col-md-6">
+                        <a href="/swagger.html" class="btn btn-primary"
+                          >API Documentation</a
+                        >
+                      </div>
+
+                      <div class="col-md-6">
+                        <a
+                          href="http://www.actionherojs.com"
+                          target="_blank"
+                          class="btn btn-outline-success"
+                          >Learn More</a
+                        >
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card border-secondary">
+        <div class="card-header">Logs:</div>
+        <div class="card-body">
+          <pre class="card-text" id="logs"></pre>
+        </div>
+      </div>
+    </div>
+
+    <script type="text/javascript">
+      const interval = 1000 * 3;
+      let timer;
+
+      const populateStatus = (data) => {
+        document.getElementById("serverVersion").innerHTML = data.version;
+        document.getElementById("serverName").innerHTML = data.name;
+        document.getElementById("serverId").innerHTML = data.id;
+        document.getElementById("actionheroVersion").innerHTML =
+          data.actionheroVersion;
+        document.getElementById("uptime").innerHTML = Math.round(
+          data.uptime / 1000 / 60
+        );
+        document.getElementById("consumedMemoryMB").innerHTML =
+          data.consumedMemoryMB + "MB";
+      };
+
+      const populateLogs = (data) => {
+        let logData = "";
+
+        for (const item of data.payloads) {
+          const dt = formatDate(item.timestamp);
+
+          logData +=
+            '<a href="#" class="list-group-item list-group-item-action flex-column align-items-start">';
+          logData += '<div class="d-flex w-100 justify-content-between">';
+          logData +=
+            '<small class="mb-1"><span style="color: blue">' +
+            dt +
+            " | </span>" +
+            item.payload +
+            "</small>";
+          logData += "</div>";
+          logData += "</a>";
+        }
+        document.getElementById("logs").innerHTML = logData;
+      };
+
+      const formatDate = (timestamp) => {
+        return new Date(timestamp).toISOString().slice(0, 19).replace("T", " ");
+      };
+
+      const loadStats = async () => {
+        fetch("/api/status")
+          .then((response) => response.json())
+          .then((data) => populateStatus(data));
+      };
+
+      const loadLogs = async () => {
+        fetch("/api/logs")
+          .then((response) => response.json())
+          .then((data) => populateLogs(data));
+      };
+
+      const tick = async () => {
+        clearTimeout(timer);
+        await loadStats();
+        await loadLogs();
+        timer = setTimeout(tick, interval);
+      };
+
+      tick();
+    </script>
+  </body>
+</html>
