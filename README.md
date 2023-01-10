@@ -1,5 +1,7 @@
 # Echo Server
 
+[![Test](https://github.com/evantahler/echo-server/actions/workflows/test.yaml/badge.svg)](https://github.com/evantahler/echo-server/actions/workflows/test.yaml)
+
 This project uses Actionhero with a Redis backend to create a simple & fast echo server. Whatever information is posted to the `/api/log` (`POST` or `PUT`) endpoint will be persisted. This information can be displayed via the `/api/logs` (`GET`) endpoint. This is useful when testing APIs or clients interacting with remote servers.
 
 ```bash
